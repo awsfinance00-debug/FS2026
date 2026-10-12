@@ -1,0 +1,381 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ledger — M-Thryve Financial System</title>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="fs-parsers.js"></script>
+<style>
+:root{--ink:#17233B;--bg:#F2F3EF;--card:#fff;--ln:#D9DCD5;--ac:#0E7C7B;--neg:#B3261E;--mut:#69717F}
+*{box-sizing:border-box}body{margin:0;font:14px/1.4 'Public Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);display:flex;min-height:100vh}
+aside{width:176px;background:var(--ink);color:#C9D2E3;padding:18px 12px;position:sticky;top:0;height:100vh;flex:none}
+aside h1{font-size:20px;margin:0 6px 18px;color:#fff;letter-spacing:-.02em}
+nav button{display:block;width:100%;text-align:left;background:none;border:0;color:inherit;padding:9px 10px;border-radius:4px;font:inherit;cursor:pointer}
+nav button.on{background:#fff;color:var(--ink);font-weight:700}nav button:hover:not(.on){background:#24345A}
+.hint{font-size:12px;margin:18px 6px;color:#8EA0BF}
+main{flex:1;min-width:0;padding:18px 22px}
+header{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px}header h2{margin:0 auto 0 0;font-size:22px;letter-spacing:-.02em}
+button,.btn,select,input{font:inherit}
+button,.btn{background:var(--ac);color:#fff;border:0;border-radius:4px;padding:7px 12px;cursor:pointer;display:inline-block}
+button.g,.btn.g{background:#fff;color:var(--ink);border:1px solid var(--ln)}
+select,input{border:1px solid var(--ln);border-radius:4px;padding:6px 8px;background:#fff;color:var(--ink);max-width:100%}
+.sum{display:grid;grid-template-columns:2fr repeat(4,1fr);gap:10px;margin-bottom:14px}
+.k{background:var(--card);border:1px solid var(--ln);border-radius:4px;padding:12px 14px}.k small{color:var(--mut)}
+.k b{display:block;font-size:20px;font-variant-numeric:tabular-nums}.k.big b{font-size:34px;letter-spacing:-.03em}.neg{color:var(--neg)}
+.two{display:grid;grid-template-columns:3fr 2fr;gap:12px}.two>div{min-width:0}.box{background:var(--card);border:1px solid var(--ln);border-radius:4px;padding:12px 14px;margin-bottom:12px}
+.box h3{margin:0 0 8px;font-size:15px}
+.sc{overflow-x:auto;background:var(--card);border:1px solid var(--ln);border-radius:4px;margin-bottom:14px}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}th,td{padding:6px 9px;border-bottom:1px solid var(--ln);white-space:nowrap;text-align:left}
+th{background:#E8EAE4;font-weight:500;font-size:12px}td.r,th.r{text-align:right}td.c{color:var(--mut)}
+tr.add td{background:#F7F8F5;padding:4px}tr.add input{width:100%;min-width:84px}td[contenteditable]:focus{outline:2px solid var(--ac);background:#F0FAF9}
+.bar{display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap;color:var(--mut)}
+.x{background:none;color:var(--neg);padding:2px 8px}
+.m{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:13px}.m i{display:block;height:12px;background:var(--ac);border-radius:2px}.m span{width:62px;color:var(--mut)}
+.ok{color:var(--ac)}.rv{color:var(--neg);font-weight:700}p.n{color:var(--mut);margin:6px 0 0;font-size:12.5px}
+.drop{border:2px dashed var(--ln);border-radius:6px;background:var(--card);padding:26px;text-align:center;color:var(--mut);margin-bottom:14px;cursor:pointer}.drop.on{border-color:var(--ac);background:#F0FAF9}
+.q{background:var(--card);border:1px solid var(--ln);border-radius:4px;padding:12px 14px;margin-bottom:10px}.q.dup{opacity:.65}.q h4{margin:0 0 4px;font-size:14px;word-break:break-all}
+.fg{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px 10px;margin-top:8px}.fg label{font-size:12px;color:var(--mut);display:flex;flex-direction:column;gap:3px}.fg input,.fg select{width:100%}
+.tag{display:inline-block;font-size:11.5px;padding:1px 7px;border-radius:9px;background:#E8EAE4;color:var(--ink);margin-right:4px}.tag.t{background:#D7EEEC;color:#0B5F5E}.tag.w{background:#FBE9E7;color:var(--neg)}
+.chk{display:flex;gap:6px;align-items:center;font-size:13px;margin-top:8px}.al{margin:0;padding-left:18px}.al li{margin:4px 0}
+.k3{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:12px}
+#login{position:fixed;inset:0;background:var(--bg);display:none;align-items:center;justify-content:center;z-index:9;padding:16px}#login form{background:#fff;border:1px solid var(--ln);border-radius:6px;padding:22px;width:340px;max-width:100%;display:flex;flex-direction:column;gap:10px}
+.me{font-size:12px;margin:14px 6px 0;color:#C9D2E3}.me a{color:#8EA0BF;cursor:pointer;text-decoration:underline}
+a.l{color:var(--ac);cursor:pointer;text-decoration:underline}
+@media(max-width:820px){body{display:block}aside{width:auto;height:auto;position:static;padding:10px}aside h1,.hint{display:none}nav{display:flex;overflow-x:auto}nav button{width:auto}.sum,.two{grid-template-columns:1fr 1fr}.k.big{grid-column:1/-1}.two{grid-template-columns:1fr}main{padding:12px}}
+</style></head><body>
+<aside><h1>Ledger</h1><nav id=nav></nav><p class=me id=me></p><p class=hint id=st>Data saves in this browser. Export to sync with your workbook.</p></aside>
+<div id=login><form onsubmit="event.preventDefault();login(this)"><b style="font-size:20px">Ledger</b><span class=c style="color:var(--mut);font-size:13px">M-Thryve financial system — Finance team sign-in</span><input name=email type=email placeholder="Work email (blank for owner)" autocomplete=username><input name=password type=password placeholder="Password" required autocomplete=current-password><button>Sign in</button><span id=lerr class=rv style="font-size:13px"></span><a class=l style="font-size:12px" onclick="localMode()">Work offline in this browser</a></form></div>
+<main><header><h2 id=ttl></h2>
+<select id=mo title="Reporting month" onchange="M=this.value;go()"></select>
+<label class="btn g">Load workbook<input type=file hidden accept=".xlsx,.xls" onchange="loadWB(this)"></label>
+<button class=g onclick="gdrive('wb')">Load from Google Drive</button><button onclick="exp()">Export workbook</button></header>
+<section id=view></section></main>
+<datalist id=pf><option>TikTok<option>Shopee<option>Lazada<option>Website<option>Direct<option>Other</datalist>
+<datalist id=dp><option>Management<option>Finance<option>Live Commerce<option>Warehouse<option>Marketing<option>Operations<option>Administration</datalist>
+<datalist id=pm><option>BDO<option>Other Bank<option>GCash<option>GoTyme<option>Cash<option>TikTok Wallet<option>Shopee Wallet<option>Lazada Wallet<option>Credit Card<option>Other</datalist>
+<datalist id=ps><option>Paid<option>Unpaid<option>Accrued</datalist>
+<datalist id=tt><option>Sale<option>Refund<option>Purchase<option>Expense<option>Payroll<option>Transfer<option>Loan<option>Capital<option>Withdrawal<option>Adjustment</datalist>
+<datalist id=cat><option>Platform report<option>Sales<option>Expense<option>Invoice (payable)<option>Invoice (receivable)<option>Contract<option>Payroll<option>Bank / e-wallet statement<option>Tax / government<option>Ledger workbook<option>Other</datalist><datalist id=team><option>Finance<option>Live Commerce<option>Marketing<option>Operations<option>Warehouse<option>HR<option>Management</datalist><datalist id=ds><option>Unpaid<option>Paid<option>Partially paid<option>Disputed<option>Active<option>Expired<option>Terminated</datalist>
+<datalist id=md><option>Fixed<option>Target-based</datalist><datalist id=yn><option>Yes<option>No</datalist><datalist id=bd></datalist><datalist id=coa></datalist>
+<script>
+const nz=s=>String(s??'').toLowerCase().replace(/[^a-z0-9]/g,''),pad=n=>String(n).padStart(2,'0');
+const num=v=>typeof v=='number'?v:parseFloat(String(v).replace(/[₱,\s%]/g,''))||0;
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const P=v=>(v<0?'-':'')+'₱'+Math.round(Math.abs(v)).toLocaleString('en-PH');
+function iso(v){if(v===''||v==null)return'';if(typeof v=='string'&&/^\d{4}-\d\d-\d\d/.test(v))return v.slice(0,10);let d;
+ if(v instanceof Date)d=new Date(+v+432e5);else if(typeof v=='number'){d=new Date(Math.round((v-25569)*864e5));d=new Date(+d+d.getTimezoneOffset()*6e4)}else{d=new Date(v);if(isNaN(d))return''}
+ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
+const COA={"1010":["Cash on Hand","Asset","Balance Sheet","Cash","Cash on Hand","Debit"],"1020":["Bank - BDO","Asset","Balance Sheet","Cash","Bank","Debit"],"1030":["Bank - Other","Asset","Balance Sheet","Cash","Bank","Debit"],"1040":["GCash","Asset","Balance Sheet","Cash","E-Wallet","Debit"],"1050":["GoTyme","Asset","Balance Sheet","Cash","E-Wallet","Debit"],"1060":["TikTok Wallet / Receivable","Asset","Balance Sheet","Receivables","Marketplace","Debit"],"1070":["Shopee Wallet / Receivable","Asset","Balance Sheet","Receivables","Marketplace","Debit"],"1080":["Other Payment Receivables","Asset","Balance Sheet","Receivables","Other","Debit"],"1100":["Accounts Receivable","Asset","Balance Sheet","Receivables","Customer","Debit"],"1200":["Inventory - Finished Goods","Asset","Balance Sheet","Inventory","Finished Goods","Debit"],"1210":["Inventory - Packaging","Asset","Balance Sheet","Inventory","Packaging","Debit"],"1300":["Prepaid Expenses","Asset","Balance Sheet","Prepayments","Other","Debit"],"1400":["Security Deposits","Asset","Balance Sheet","Deposits","Security","Debit"],"1500":["Equipment","Asset","Balance Sheet","Fixed Assets","Equipment","Debit"],"1510":["Computer / IT Equipment","Asset","Balance Sheet","Fixed Assets","IT","Debit"],"1520":["Furniture & Fixtures","Asset","Balance Sheet","Fixed Assets","Furniture","Debit"],"1590":["Accumulated Depreciation","Contra Asset","Balance Sheet","Fixed Assets","Accumulated Depreciation","Credit"],"2010":["Accounts Payable","Liability","Balance Sheet","Payables","Supplier","Credit"],"2020":["Accrued Expenses","Liability","Balance Sheet","Payables","Accrued","Credit"],"2030":["Salaries Payable","Liability","Balance Sheet","Payables","Payroll","Credit"],"2040":["Government Contributions Payable","Liability","Balance Sheet","Payables","Government","Credit"],"2050":["Taxes Payable","Liability","Balance Sheet","Payables","Taxes","Credit"],"2060":["Customer Refunds Payable","Liability","Balance Sheet","Payables","Refunds","Credit"],"2100":["Loans Payable","Liability","Balance Sheet","Loans","Loans","Credit"],"2200":["Other Payables","Liability","Balance Sheet","Payables","Other","Credit"],"3010":["Owner's Capital","Equity","Balance Sheet","Equity","Capital","Credit"],"3020":["Additional Capital","Equity","Balance Sheet","Equity","Capital","Credit"],"3030":["Owner's Drawings","Equity","Balance Sheet","Equity","Drawings","Debit"],"3100":["Retained Earnings","Equity","Balance Sheet","Equity","Retained Earnings","Credit"],"3200":["Current Year Profit/Loss","Equity","Balance Sheet","Equity","Current Year","Credit"],"4010":["TikTok Sales","Revenue","P&L","Revenue","TikTok","Credit"],"4020":["Shopee Sales","Revenue","P&L","Revenue","Shopee","Credit"],"4030":["Lazada Sales","Revenue","P&L","Revenue","Lazada","Credit"],"4040":["Website / Direct Sales","Revenue","P&L","Revenue","Website / Direct","Credit"],"4050":["Other Sales","Revenue","P&L","Revenue","Other","Credit"],"4100":["Other Operating Income","Revenue","P&L","Other Income","Other","Credit"],"5010":["Product Cost","COGS","P&L","COGS","Product","Debit"],"5020":["Packaging Cost","COGS","P&L","COGS","Packaging","Debit"],"5030":["Freight / Inbound Shipping","COGS","P&L","COGS","Inbound Freight","Debit"],"5040":["Other Direct Product Costs","COGS","P&L","COGS","Other Direct","Debit"],"6010":["TikTok Advertising","Expense","P&L","Marketing","Advertising","Debit"],"6020":["Shopee Advertising","Expense","P&L","Marketing","Advertising","Debit"],"6030":["Lazada Advertising","Expense","P&L","Marketing","Advertising","Debit"],"6040":["Facebook / Meta Advertising","Expense","P&L","Marketing","Advertising","Debit"],"6050":["Influencer / Affiliate Marketing","Expense","P&L","Marketing","Affiliate","Debit"],"6060":["Marketing Materials","Expense","P&L","Marketing","Materials","Debit"],"6070":["Content Production","Expense","P&L","Marketing","Content","Debit"],"6100":["TikTok Platform Fees","Expense","P&L","Selling Costs","Marketplace Fees","Debit"],"6110":["Shopee Platform Fees","Expense","P&L","Selling Costs","Marketplace Fees","Debit"],"6120":["Lazada Platform Fees","Expense","P&L","Selling Costs","Marketplace Fees","Debit"],"6130":["Payment Processing Fees","Expense","P&L","Selling Costs","Payment Fees","Debit"],"6140":["Affiliate Commission","Expense","P&L","Selling Costs","Commission","Debit"],"6150":["Seller Subsidies","Expense","P&L","Selling Costs","Subsidies","Debit"],"6160":["Other Selling Fees","Expense","P&L","Selling Costs","Other","Debit"],"6200":["Salaries & Wages","Expense","P&L","Payroll","Salaries","Debit"],"6210":["Overtime","Expense","P&L","Payroll","Overtime","Debit"],"6220":["Employee Incentives","Expense","P&L","Payroll","Incentives","Debit"],"6230":["Employer SSS","Expense","P&L","Payroll","SSS","Debit"],"6240":["Employer PhilHealth","Expense","P&L","Payroll","PhilHealth","Debit"],"6250":["Employer Pag-IBIG","Expense","P&L","Payroll","Pag-IBIG","Debit"],"6260":["Employee Benefits","Expense","P&L","Payroll","Benefits","Debit"],"6300":["Warehouse Expense","Expense","P&L","Operations","Warehouse","Debit"],"6310":["Rent","Expense","P&L","Operations","Rent","Debit"],"6320":["Utilities","Expense","P&L","Operations","Utilities","Debit"],"6330":["Internet","Expense","P&L","Operations","Internet","Debit"],"6340":["Office Supplies","Expense","P&L","Operations","Supplies","Debit"],"6350":["Cleaning Supplies","Expense","P&L","Operations","Cleaning","Debit"],"6360":["Repairs & Maintenance","Expense","P&L","Operations","Repairs","Debit"],"6370":["Transportation","Expense","P&L","Operations","Transportation","Debit"],"6380":["Delivery / Logistics Expense","Expense","P&L","Operations","Logistics","Debit"],"6400":["Accounting Fees","Expense","P&L","Administrative","Accounting","Debit"],"6410":["Professional Fees","Expense","P&L","Administrative","Professional","Debit"],"6420":["Bank Charges","Expense","P&L","Administrative","Bank","Debit"],"6430":["Software / Subscriptions","Expense","P&L","Administrative","Software","Debit"],"6440":["Office Expense","Expense","P&L","Administrative","Office","Debit"],"6450":["Permits & Licenses","Expense","P&L","Administrative","Permits","Debit"],"6460":["Taxes & Government Fees","Expense","P&L","Administrative","Taxes","Debit"],"6470":["Training","Expense","P&L","Administrative","Training","Debit"],"6480":["Miscellaneous Expense","Expense","P&L","Administrative","Miscellaneous","Debit"],"6500":["Depreciation Expense","Expense","P&L","Administrative","Depreciation","Debit"]};
+// col: [key,label,type(t/n/d/p),aliases,datalist]
+const T={
+sales:{n:'Sales',sheet:'05_SALES',key:'orderId',dated:1,cols:[['date','Date','d',['orderdate','createdtime','paiddate']],['orderId','Order ID','t',['order','orderno','ordernumber']],['platform','Platform','t',[],'pf'],['brand','Brand','t',['shop'],'bd'],['sku','SKU','t',[]],['product','Product','t',['productname']],['qty','Qty','n',['quantity']],['gross','Gross Sales','n',['gmv','orderamount','totalamount','sales']],['discount','Discount','n',[]],['refund','Refund','n',['refunds']],['pfee','Platform Fee','n',['commissionfee']],['afee','Affiliate Fee','n',['affiliatecommission']],['ship','Shipping','n',['shippingfee']],['ofee','Other Fees','n',[]]],
+ calc:[['Net Sales',r=>r.gross-r.discount-r.refund],['Net Payout',r=>r.gross-r.discount-r.refund-r.pfee-r.afee-r.ship-r.ofee]]},
+opex:{n:'Daily Expenses',sheet:'08_OPEX',key:'voucher',dated:1,cols:[['date','Date','d',['expensedate']],['voucher','Voucher No.','t',['voucher']],['payee','Payee','t',['supplier','vendor']],['desc','Description','t',['particulars']],['account','Account Code','t',['account'],'coa'],['category','Category','t',[]],['dept','Department','t',[],'dp'],['amount','Amount','n',['total']],['method','Payment Method','t',[],'pm'],['status','Status','t',[],'ps'],['ref','Reference','t',[]]],calc:[]},
+payroll:{n:'Payroll',sheet:'09_PAYROLL',dated:1,cols:[['date','Date','d',['payperiod','payday']],['empId','Employee ID','t',['employeeno']],['name','Employee Name','t',['name']],['dept','Department','t',[],'dp'],['basic','Basic Pay','n',['basic']],['allow','Allowances','n',[]],['ot','OT Pay','n',['overtime']],['ded','Deductions','n',[]],['sss','Employer SSS','n',['sss']],['phil','Employer PhilHealth','n',['philhealth']],['pag','Employer Pag-IBIG','n',['pagibig']],['status','Status','t',[],'ps']],
+ calc:[['Gross Pay',r=>r.basic+r.allow+r.ot],['Net Pay',r=>r.basic+r.allow+r.ot-r.ded],['Total Employer Cost',r=>r.basic+r.allow+r.ot+r.sss+r.phil+r.pag]]},
+ads:{n:'Advertising',sheet:'10_ADVERTISING',dated:1,cols:[['date','Date','d',[]],['platform','Platform','t',[],'pf'],['campaign','Campaign','t',['adname']],['spend','Ad Spend','n',['spend','cost']],['orders','Orders','n',[]],['sales','Attributed Sales','n',['revenue','gmv']],['ref','Reference','t',[]]],calc:[['ROAS',r=>r.spend?+(r.sales/r.spend).toFixed(2):0]]},
+cash:{n:'Cashbook',sheet:'11_CASHBOOK',dated:1,cols:[['date','Date','d',[]],['type','Transaction Type','t',[],'tt'],['desc','Description','t',[]],['account','Account / Bank / Wallet','t',['account'],'pm'],['in','Inflow','n',[]],['out','Outflow','n',[]],['ref','Reference','t',[]],['rec','Reconciled?','t',['reconciled'],'yn']],calc:[]},
+brands:{n:'Brands',sheet:'16_BRAND COMMISSION',key:'name',cols:[['name','Brand','t',[]],['model','Commission Model','t',['model'],'md'],['rate','Fixed Rate','p',['rate']],['target','Target GMV','n',['target']]],calc:[]},
+bal:{n:'Opening balances',sheet:'18_OPENING BALANCES',cols:[['account','Account Code','t',['accountcode','account'],'coa'],['amount','Balance','n',['amount']],['note','Note','t',[]]],calc:[['Account',r=>COA[r.account]?COA[r.account][0]:'Unknown code']]},
+tiers:{n:'Tiers',sheet:'16b_TIERS',cols:[['at','Achievement ≥','p',['achievement','threshold']],['rate','Commission Rate','p',['rate']]],calc:[]}};
+const seed=[['LIVE','LIVE-attributed',131278],['AFF','Affiliate/Creator-attributed',121240],['PC','Seller product card',59347],['VID','Seller video',51197]].map(([i,p,g])=>({date:'2026-09-30',orderId:'SEP-CHANNEL-'+i,platform:'TikTok',brand:'Basic City',sku:'CHANNEL',product:p,qty:1,gross:g,discount:0,refund:0,pfee:0,afee:0,ship:0,ofee:0}));
+const D0=()=>({sales:seed,opex:[],payroll:[],ads:[],cash:[],brands:[['Basic City','Fixed',.07],['Allianna\'s Choice','Fixed',.025],['FML','Fixed',.025],['Vitachum','Target-based',0],['Star360','Fixed',.05],['Crayola','Fixed',.05],['Kanami','Fixed',.05]].map(([name,model,rate])=>({name,model,rate,target:0})),tiers:[0,.8,1,1.2].map(at=>({at,rate:0})),bal:[],uploads:[],docs:[],base:'net',defBrand:'Basic City'});
+let S;try{S={...D0(),...JSON.parse(localStorage.getItem('frs3'))}}catch(e){S=D0()}
+let V='dash',M='';
+let TOK=localStorage.getItem('frs_tok')||'',REV=0,CLOUD=false,pt=0,NOTE=[],ME={name:'This browser',role:'local'};
+const stat=t=>document.querySelector('#st').textContent=t,tm=()=>new Date().toLocaleTimeString();
+// save(note): note is written to the server audit log with the next sync
+const save=n=>{if(n)NOTE.push(n);try{localStorage.setItem('frs3',JSON.stringify(S));stat('Saved locally '+tm())}catch(e){stat('Could not save locally')}if(CLOUD){clearTimeout(pt);pt=setTimeout(push,700);stat('Saving to cloud…')}};
+const api=(m,b)=>fetch('/api/data',{method:m,headers:{authorization:'Bearer '+TOK,'content-type':'application/json'},body:b?JSON.stringify(b):undefined});
+const H=()=>({authorization:'Bearer '+TOK});
+async function push(){pt=0;const note=NOTE.splice(0).join(' · ').slice(0,480);try{const r=await api('PUT',{rev:REV,data:S,note}),j=await r.json();
+ if(r.status==401){NOTE.unshift(note);return showLogin('Session expired — sign in again. Your edits are kept in this browser.')}
+ if(r.status==409){if(confirm('Another user saved newer data.\nOK = load their version (your latest edit is dropped).\nCancel = overwrite theirs with yours.'))return pull();REV=j.rev;NOTE.unshift(note);return push()}
+ if(!r.ok)throw 0;REV=j.rev;stat('Cloud synced '+tm())}catch(e){if(note)NOTE.unshift(note);stat('⚠ Cloud save failed — kept locally, retries on next edit')}}
+async function pull(){const r=await api('GET'),j=await r.json();if(r.ok&&j.data){S={...D0(),...j.data};REV=j.rev;localStorage.setItem('frs3',JSON.stringify(S));go();stat('Cloud synced '+tm())}}
+function showLogin(m){$('#login').style.display='flex';$('#lerr').textContent=m||''}
+function localMode(){$('#login').style.display='none';CLOUD=false;ME={name:'This browser',role:'local'};go();stat('Offline mode — data stays in this browser; files are not stored')}
+async function login(f){$('#lerr').textContent='Signing in…';try{const r=await fetch('/api/auth',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'login',email:f.email.value,password:f.password.value})}),j=await r.json().catch(()=>({}));
+ if(!r.ok)return $('#lerr').textContent=j.error||'Sign-in failed ('+r.status+')';TOK=j.token;localStorage.setItem('frs_tok',TOK);f.password.value='';$('#login').style.display='none';boot()}catch(e){$('#lerr').textContent='Server not reachable — use offline mode'}}
+function logout(){localStorage.removeItem('frs_tok');TOK='';CLOUD=false;showLogin('Signed out.')}
+let poll=0;
+async function boot(){try{const r=await api('GET');
+ if(r.status==401)return showLogin();
+ if(r.status==500){const j=await r.json().catch(()=>({}));return stat(j.error||'Server error')}if(!r.ok)throw 0;
+ const j=await r.json();CLOUD=true;REV=j.rev;ME=j.me||ME;
+ if(j.data){S={...D0(),...j.data};localStorage.setItem('frs3',JSON.stringify(S));M='';window.mInit=0;go()}else{go();await push()}stat('Cloud synced '+tm());
+ clearInterval(poll);poll=setInterval(()=>{if(CLOUD&&!pt&&!/INPUT|TD|SELECT/.test(document.activeElement.tagName))api('GET').then(r=>r.json()).then(j=>{if(j.rev>REV&&j.data){REV=j.rev;S={...D0(),...j.data};go();stat('Updated from cloud '+tm())}}).catch(()=>{})},45000)
+ }catch(e){stat('Offline mode (server not reachable) — data stays in this browser');go()}}
+const $=s=>document.querySelector(s);
+const NAV=[['dash','Dashboard'],['up','Upload Center'],['docs','Documents'],['plat','Platform Performance'],['sales','Sales'],['payroll','Payroll'],['opex','Daily Expenses'],['ads','Advertising'],['cash','Cashbook'],['pl','Profit & Loss'],['bs','Balance Sheet'],['brands','Brands & Rates'],['hist','Upload History'],['team','Team & Audit']];
+function months(){const s=new Set();['sales','opex','payroll','ads','cash'].forEach(k=>S[k].forEach(r=>r.date&&s.add(r.date.slice(0,7))));return[...s].sort()}
+function go(){const ms=months();if(M===''&&!window.mInit){M=ms.at(-1)||'';window.mInit=1}
+ $('#mo').innerHTML='<option value="">All time</option>'+ms.map(m=>`<option ${m==M?'selected':''} value=${m}>${m}</option>`).join('');
+ $('#nav').innerHTML=NAV.map(([k,l])=>`<button class="${k==V?'on':''}" onclick="V='${k}';go()">${l}</button>`).join('');
+ $('#ttl').textContent=NAV.find(n=>n[0]==V)[1];$('#bd').innerHTML=S.brands.map(b=>`<option>${esc(b.name)}`).join('');
+ $('#coa').innerHTML=Object.entries(COA).map(([k,v])=>`<option value=${k}>${esc(v[0])}`).join('');
+ $('#me').innerHTML=CLOUD?`${esc(ME.name)} · ${esc(ME.role)} · <a onclick=logout()>Sign out</a>`:`Offline · <a onclick=showLogin()>Sign in</a>`;
+ $('#view').innerHTML=V=='dash'?weekly()+dash():V=='up'?upView():V=='docs'?docsView():V=='plat'?platView():V=='team'?teamView():V=='brands'?brandsView():V=='hist'?histView():V=='pl'?plView():V=='bs'?bsView():table(V);if(V=='team')loadTeam()}
+const fm=(c,v)=>c[2]=='n'?(v||v===0?(+v).toLocaleString('en-PH',{maximumFractionDigits:2}):''):c[2]=='p'?+(v*100).toFixed(2)+'%':esc(v);
+function table(k,extra=''){const t=T[k],ms=t.dated&&M;
+ const rows=S[k].map((r,i)=>[r,i]).filter(([r])=>!ms||(r.date||'').startsWith(M)).reverse().slice(0,400);
+ const imp=t.dated?`<label class="btn g">Import platform report / file<input type=file hidden accept=".xlsx,.xls,.csv" onchange="imp('${k}',this)"></label><button class=g onclick="gdrive('${k}')">Import from Google Drive</button>`:'';
+ return`<div class=bar>${imp}${extra}<span>${rows.length} rows${t.dated&&M?' in '+M:''}${S[k].length>400?' (newest 400 shown)':''}</span></div><div class=sc><table><thead><tr>${t.cols.map(c=>`<th class="${c[2]=='n'||c[2]=='p'?'r':''}">${c[1]}</th>`).join('')}${t.calc.map(c=>`<th class=r>${c[0]}</th>`).join('')}<th></th></tr>
+ <tr class=add>${t.cols.map(c=>`<td><input id="a_${k}_${c[0]}" type="${c[2]=='d'?'date':c[2]=='t'?'text':'number'}" step=any ${c[4]?`list=${c[4]}`:''} placeholder="${c[2]=='p'?'%':''}" onkeydown="if(event.key=='Enter')add('${k}')"></td>`).join('')}${t.calc.map(()=>'<td></td>').join('')}<td><button onclick="add('${k}')">Add</button></td></tr></thead>
+ <tbody>${rows.map(([r,i])=>`<tr>${t.cols.map(c=>`<td class="${c[2]=='n'||c[2]=='p'?'r':''}" contenteditable onblur="ed('${k}',${i},'${c[0]}',this)">${fm(c,r[c[0]])}</td>`).join('')}${t.calc.map(c=>`<td class="r c">${cx(c[1](r))}</td>`).join('')}<td><button class="x g" onclick="del('${k}',${i})">×</button></td></tr>`).join('')||`<tr><td colspan=${t.cols.length+t.calc.length+1} class=c>No rows yet — add one above or import a file.</td></tr>`}</tbody></table></div>`}
+const cx=v=>typeof v=='string'?esc(v):fm(['','','n'],v);
+const cv=(c,v)=>c[2]=='n'?num(v):c[2]=='p'?num(v)/100:c[2]=='d'?iso(v):String(v??'').trim();
+function add(k){const t=T[k],o={};t.cols.forEach(c=>o[c[0]]=cv(c,$(`#a_${k}_${c[0]}`).value));
+ if(t.dated&&!o.date)o.date=new Date().toISOString().slice(0,10);if(k=='opex'&&!o.category&&COA[o.account])o.category=COA[o.account][3];if(k=='sales'&&!o.brand)o.brand=S.defBrand;if(k=='brands'&&!o.name)return;
+ if(t.key&&o[t.key]&&S[k].some(r=>r[t.key]==o[t.key])&&!confirm('This '+t.cols.find(c=>c[0]==t.key)[1]+' already exists. Add anyway?'))return;
+ S[k].push(o);save();if(t.dated)M=o.date.slice(0,7);go()}
+function ed(k,i,c,el){const col=T[k].cols.find(x=>x[0]==c),v=cv(col,el.textContent);if(v!==S[k][i][c]){S[k][i][c]=v;if(k=='opex'&&c=='account'&&COA[v])S[k][i].category=COA[v][3];save();go()}}
+function del(k,i){if(confirm('Delete this row?')){S[k].splice(i,1);save();go()}}
+function parse(ws,t){const rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:''}),al=c=>[...c[3],nz(c[1]),nz(c[0])];let hi=-1,best=0;
+ rows.slice(0,25).forEach((r,i)=>{const s=t.cols.filter(c=>r.some(h=>al(c).includes(nz(h)))).length;if(s>best){best=s;hi=i}});
+ if(best<2)return null;const H=rows[hi].map(nz),ix=t.cols.map(c=>H.findIndex(h=>al(c).includes(h)));
+ return rows.slice(hi+1).map(r=>{const o={};let any=0;t.cols.forEach((c,j)=>{const v=ix[j]<0?'':r[ix[j]];if(v!=='')any=1;o[c[0]]=cv(c,v)});return any&&(!t.dated||o.date)?o:null}).filter(Boolean)}
+async function readWB(f){return XLSX.read(await f.arrayBuffer(),{cellDates:true})}
+async function imp(k,inp){const f=inp.files[0];inp.value='';if(f)impFile(k,f)}
+async function fhash(f){try{const h=await crypto.subtle.digest('SHA-256',await f.arrayBuffer());return[...new Uint8Array(h)].map(x=>x.toString(16).padStart(2,'0')).join('')}catch(e){return'x'}}
+const fp=(t,r)=>t.cols.map(c=>r[c[0]]).join('|');
+function merge(k,rows,u){const t=T[k],keys=new Set(t.key?S[k].map(r=>r[t.key]).filter(Boolean):[]),fps=new Set(S[k].map(r=>fp(t,r)));let n=0,d=0;
+ rows.forEach(r=>{if(k=='sales'&&!r.brand)r.brand=S.defBrand;if(k=='brands')r.model=r.model||'Fixed';const f=fp(t,r);
+  if((k=='brands'&&!r.name)||(t.key&&r[t.key]&&keys.has(r[t.key]))||fps.has(f)){d++;return}
+  if(u)r._u=u;S[k].push(r);fps.add(f);if(t.key&&r[t.key])keys.add(r[t.key]);n++});return{n,d}}
+async function seen(f){const h=await fhash(f),u=(S.uploads||[]).find(x=>x.hash==h);
+ if(u&&!confirm(`This exact file was already uploaded on ${new Date(u.at).toLocaleString()} ("${u.name}").\n${u.log}\n\nOK = check it again anyway (rows already stored are still skipped)\nCancel = don't upload`))return null;return h}
+const lmsg=L=>L.map(([a,n,d])=>`${a}: ${n} new row${n==1?'':'s'}${d?`, ${d} already stored (skipped)`:''}`).join('\n');
+function done(f,h,L,date,u){const msg=lmsg(L),tot=L.reduce((x,y)=>x+y[1],0);
+ S.uploads=[{id:u,at:Date.now(),by:ME.name,name:f.name||'Uploaded file',hash:h,log:msg.replace(/\n/g,'; ')},...(S.uploads||[])].slice(0,500);
+ vault(f,h,{category:'Ledger workbook',team:'Finance',posted:msg.replace(/\n/g,'; '),uploadId:u});
+ save('Imported '+(f.name||'file')+' — '+msg.replace(/\n/g,'; '));if(date)M=date.slice(0,7);go();
+ alert(tot?'Upload complete.\n'+msg:'These records are already uploaded — nothing was added.\n'+msg)}
+async function impFile(k,f){const t=T[k],h=await seen(f);if(h===null)return;const wb=await readWB(f);
+ const ws=wb.Sheets[wb.SheetNames.find(n=>n==t.sheet)||wb.SheetNames[0]],rows=parse(ws,t);
+ if(!rows||!rows.length)return alert('No rows matched. Check that the file has a header row with columns like '+t.cols.slice(0,4).map(c=>c[1]).join(', ')+'.');
+ const u=uid(),m=merge(k,rows,u);done(f,h,[[t.n,m.n,m.d]],rows[0].date,u)}
+async function loadWB(inp){const f=inp.files[0];inp.value='';if(f)loadFile(f)}
+async function loadFile(f){const h=await seen(f);if(h===null)return;const wb=await readWB(f),L=[],u=uid();
+ for(const k of['sales','opex','payroll','ads','cash','brands','tiers','bal']){const n=wb.SheetNames.find(x=>x==T[k].sheet);if(!n)continue;const r=parse(wb.Sheets[n],T[k]);if(!r)continue;const m=merge(k,r,u);L.push([T[k].n,m.n,m.d])}
+ if(!L.length)return alert('No sheets with the expected names (05_SALES, 08_OPEX, 09_PAYROLL, …) were found in this workbook.');
+ done(f,h,L,months().at(-1)||'',u)}
+function histView(){const cnt=u=>['sales','opex','payroll','ads','cash'].reduce((s,k)=>s+S[k].filter(r=>r._u==u).length,0);
+ return`<div class=sc><table><tr><th>Uploaded<th>By<th>File<th>Result<th class=r>Rows still in ledger<th></tr>${(S.uploads||[]).map(u=>{const n=u.id?cnt(u.id):0;return`<tr><td>${new Date(u.at).toLocaleString()}<td>${esc(u.by||'')}<td>${esc(u.name)}<td class=c>${esc(u.log)}${u.undone?` <span class="tag w">undone ${esc(u.undone)}</span>`:''}<td class=r>${u.id?n:'—'}<td>${n?`<button class=g onclick="undo('${u.id}')">Undo upload</button>`:''}</tr>`}).join('')||'<tr><td colspan=6 class=c>No uploads yet.</tr>'}</table></div><p class=n>Every upload is recorded here. Re-uploading the same file, or a file that overlaps earlier uploads, never creates duplicates. “Undo upload” removes exactly the ledger rows that upload added (the stored file stays in Documents).</p>`}
+function undo(u){const ks=['sales','opex','payroll','ads','cash'],n=ks.reduce((s,k)=>s+S[k].filter(r=>r._u==u).length,0),up=S.uploads.find(x=>x.id==u);
+ if(!n||!confirm(`Remove the ${n} ledger row(s) added by "${up?up.name:'this upload'}"?`))return;ks.forEach(k=>S[k]=S[k].filter(r=>r._u!=u));if(up)up.undone=new Date().toLocaleString()+' by '+ME.name;save('Undid upload '+(up?up.name:u)+' ('+n+' rows)');go()}
+
+function calc(m,thru){const f=a=>a.filter(r=>{const d=r.date||'';return!m||(thru?d.slice(0,7)<=m:d.startsWith(m))}),sum=(a,fn)=>a.reduce((s,r)=>s+fn(r),0),sa=f(S.sales),bs=r=>S.base=='gross'?r.gross:r.gross-r.discount-r.refund;
+ const br=S.brands.map(b=>{const g=sum(sa.filter(r=>r.brand==b.name),bs),ach=b.target?g/b.target:0;let rate=b.rate;
+  if(b.model=='Target-based'){rate=0;[...S.tiers].sort((x,y)=>x.at-y.at).forEach(t=>{if(ach>=t.at)rate=t.rate})}return{...b,g,ach,rate,c:g*rate}});
+ const names=new Set(S.brands.map(b=>b.name)),un=sum(sa.filter(r=>!names.has(r.brand)),bs),rev=sum(br,b=>b.c),
+ pay=sum(f(S.payroll),r=>r.basic+r.allow+r.ot+r.sss+r.phil+r.pag),ads=sum(f(S.ads),r=>r.spend),
+ rows=f(S.opex).filter(r=>{const a=COA[r.account];return!(a&&((a[3]=='Payroll'&&pay>0)||(a[4]=='Advertising'&&ads>0)))}),opex=sum(rows,r=>r.amount),tot=opex+pay+ads,
+ ci=sum(f(S.cash),r=>r.in),co=sum(f(S.cash),r=>r.out);
+ return{br,un,rev,opex,pay,ads,tot,rows,profit:rev-tot,mg:rev?(rev-tot)/rev:0,ci,co,gmv:sum(sa,bs),bal:sum(S.cash,r=>r.in-r.out)}}
+function dash(){const c=calc(M),ms=months(),mg=ms.map(m=>[m,calc(m).gmv]),mx=Math.max(1,...mg.map(x=>x[1]));
+ const chk=[['Sales rows missing Order ID',S.sales.filter(r=>!r.orderId).length],['Sales rows missing Platform',S.sales.filter(r=>!r.platform).length],['Sales assigned to a brand not in the list',S.sales.filter(r=>!S.brands.some(b=>b.name==r.brand)).length],['Expenses missing Account Code',S.opex.filter(r=>!r.account).length],['Expenses with an unknown Account Code',S.opex.filter(r=>r.account&&!COA[r.account]).length],['Unpaid / accrued expenses',S.opex.filter(r=>r.status&&r.status!='Paid').length],['Unreconciled cashbook rows',S.cash.filter(r=>r.rec!='Yes').length]];
+ const vit=c.br.find(b=>b.model=='Target-based'&&!b.target);
+ return`<div class=sum><div class="k big"><small>Commission / service revenue</small><b>${P(c.rev)}</b></div><div class=k><small>Brand GMV (${S.base})</small><b>${P(c.gmv)}</b></div><div class=k><small>Total OPEX</small><b>${P(c.tot)}</b></div><div class=k><small>Operating profit</small><b class="${c.profit<0?'neg':''}">${P(c.profit)}</b></div><div class=k><small>Operating margin</small><b class="${c.profit<0?'neg':''}">${(c.mg*100).toFixed(1)}%</b></div></div>
+ <div class=two><div><div class=box><h3>Commission by brand</h3><div class=sc style="border:0;margin:0"><table><tr><th>Brand<th>Model<th class=r>GMV<th class=r>Rate<th class=r>Commission</tr>${c.br.map(b=>`<tr><td>${esc(b.name)}<td class=c>${b.model}<td class=r>${P(b.g)}<td class=r>${+(b.rate*100).toFixed(2)}%<td class=r>${P(b.c)}</tr>`).join('')}<tr><th colspan=4>Total<th class=r>${P(c.rev)}</tr></table></div>
+ ${c.un?`<p class="n rv">${P(c.un)} of sales belong to brands not in the list.</p>`:''}${vit?'<p class=n>Vitachum has no target set — enter its Target GMV and contract tiers under Brands & Rates before recognizing commission.</p>':''}</div>
+ <div class=box><h3>Operating expenses</h3><table><tr><td>Daily expenses<td class=r>${P(c.opex)}</tr><tr><td>Payroll (employer cost)<td class=r>${P(c.pay)}</tr><tr><td>Advertising<td class=r>${P(c.ads)}</tr><tr><th>Total<th class=r>${P(c.tot)}</tr></table><p class=n>Expenses coded to payroll or advertising accounts are left out when the Payroll or Advertising tabs have data for the same period, so nothing is counted twice.</p></div></div>
+ <div><div class=box><h3>GMV by month</h3>${mg.map(([m,v])=>`<div class=m><span>${m}</span><i style="width:${v/mx*70}%"></i>${P(v)}</div>`).join('')||'<p class=n>No data yet.</p>'}</div>
+ <div class=box><h3>Cash</h3><table><tr><td>Cash in<td class=r>${P(c.ci)}<tr><td>Cash out<td class=r>${P(c.co)}<tr><td>Net movement<td class=r>${P(c.ci-c.co)}<tr><th>Balance (all time)<th class=r>${P(c.bal)}</table></div>
+ <div class=box><h3>Controls</h3><table>${chk.map(([l,n])=>`<tr><td>${l}<td class="r ${n?'rv':'ok'}">${n?n:'OK'}</tr>`).join('')}</table></div></div></div>`}
+function brandsView(){const opt=(v,a)=>a.map(([x,l])=>`<option value="${x}" ${v==x?'selected':''}>${l}`).join('');
+ return`<div class=bar>Commission base <select onchange="S.base=this.value;save();go()">${opt(S.base,[['net','Net sales (gross − discount − refund)'],['gross','Gross sales']])}</select> Default brand for imports without a Brand column <select onchange="S.defBrand=this.value;save()">${S.brands.map(b=>`<option ${b.name==S.defBrand?'selected':''}>${esc(b.name)}`).join('')}</select></div>${table('brands')}
+ <div class=box><h3>Target-based tiers (applies to brands set to “Target-based”)</h3><p class=n style="margin:0 0 8px">Rate applies when GMV ÷ Target GMV reaches the threshold. Replace the placeholder zeros with the contract’s table.</p>${table('tiers')}</div>`}
+function plView(){const c=calc(M),g={};
+ c.rows.forEach(r=>{const a=COA[r.account],cat=a?a[3]:'Unclassified',nm=a?r.account+' '+a[0]:(r.account||'No account code');g[cat]=g[cat]||{};g[cat][nm]=(g[cat][nm]||0)+r.amount});
+ if(c.pay)g.Payroll={...g.Payroll,'Payroll tab — employer cost':c.pay};if(c.ads)g.Marketing={...g.Marketing,'Advertising tab — ad spend':c.ads};
+ const L=(l,v)=>`<tr><th>${l}<th class=r>${P(v)}</tr>`,sub=(n,v)=>`<tr><td class=c style="padding-left:22px">${esc(n)}<td class="r c">${P(v)}</tr>`;
+ return`<div class=box style="max-width:660px"><h3>Commission-based P&L — ${M||'All time'}</h3><table><tr><th colspan=2>Revenue</tr>${c.br.map(b=>sub(b.name+' ('+ +(b.rate*100).toFixed(2)+'%)',b.c)).join('')}${L('Total commission / service revenue',c.rev)}
+ <tr><th colspan=2>Operating expenses</tr>${Object.entries(g).map(([k,o])=>`<tr><td><b>${esc(k)}</b><td class=r>${P(Object.values(o).reduce((a,b)=>a+b,0))}</tr>`+Object.entries(o).map(([n,v])=>sub(n,v)).join('')).join('')}${L('Total operating expenses',c.tot)}${L('Operating profit',c.profit)}<tr><td>Operating margin<td class=r>${(c.mg*100).toFixed(1)}%</tr></table>
+ <p class=n>Revenue is commission only (GMV is not revenue) and there is no product COGS. Expenses are grouped by the Chart of Accounts category of each account code.</p></div>`}
+function bsView(){const c=calc(M,1),A={},Li={},E={},ad=(o,n,v)=>o[n]=(o[n]||0)+v,up=r=>!M||(r.date||'').slice(0,7)<=M,tt=o=>Object.values(o).reduce((a,b)=>a+b,0);
+ S.cash.filter(up).forEach(r=>ad(A,'Cash — '+(r.account||'Unassigned'),r.in-r.out));
+ S.bal.forEach(r=>{const a=COA[r.account];if(!a)return;const o=a[1]=='Liability'?Li:a[1]=='Equity'?E:A;ad(o,r.account+' '+a[0],a[5]==(o===A?'Debit':'Credit')?r.amount:-r.amount)});
+ const ox=S.opex.filter(up),by=s=>ox.filter(r=>r.status==s).reduce((t,r)=>t+r.amount,0);
+ if(by('Unpaid'))ad(Li,'Accounts payable — unpaid expenses',by('Unpaid'));if(by('Accrued'))ad(Li,'Accrued expenses',by('Accrued'));
+ ad(E,'Cumulative operating profit (from P&L)',c.profit);
+ const ta=tt(A),tl=tt(Li),te=tt(E),df=ta-tl-te,sec=(t,o,v)=>`<tr><th colspan=2>${t}</tr>`+Object.entries(o).map(([n,x])=>`<tr><td class=c style="padding-left:22px">${esc(n)}<td class="r c">${P(x)}</tr>`).join('')+`<tr><th>Total ${t.toLowerCase()}<th class=r>${P(v)}</tr>`;
+ return`<div class=box style="max-width:660px"><h3>Balance sheet — as of ${M?M+' month-end':'today'}</h3><table>${sec('Assets',A,ta)}${sec('Liabilities',Li,tl)}${sec('Equity',E,te)}<tr><td>Difference (assets − liabilities − equity)<td class="r ${Math.abs(df)>1?'rv':'ok'}">${P(df)}</tr></table>
+ <p class=n>Cash comes from the Cashbook; unpaid and accrued expenses become liabilities; equity includes cumulative operating profit. This is a single-entry view, so a difference remains until opening balances are entered below and money held for brands is recorded.</p></div>
+ <div class=box><h3>Opening balances &amp; other balances</h3><p class=n style="margin:0 0 8px">Enter balances as positive amounts using Chart of Accounts codes (e.g. 1500 Equipment, 2100 Loans Payable, 3010 Owner's Capital). Contra accounts and drawings are subtracted automatically.</p>${table('bal')}</div>`}
+const lz=u=>new Promise((res,rej)=>{if(document.querySelector(`script[src="${u}"]`))return res();const e=document.createElement('script');e.src=u;e.onload=res;e.onerror=()=>rej(new Error('Could not load Google scripts'));document.head.appendChild(e)});
+let GT=0,GX=0;
+async function gdrive(k){try{const cfg=await fetch('/api/gconfig').then(r=>r.json()).catch(()=>({}));
+ if(!cfg.clientId||!cfg.apiKey)return glink(k);
+ await lz('https://accounts.google.com/gsi/client');await lz('https://apis.google.com/js/api.js');await new Promise(r=>gapi.load('picker',r));
+ if(!GT||Date.now()>GX)GT=await new Promise((res,rej)=>google.accounts.oauth2.initTokenClient({client_id:cfg.clientId,scope:'https://www.googleapis.com/auth/drive.file',callback:r=>r.access_token?(GX=Date.now()+(r.expires_in-60)*1e3,res(r.access_token)):rej(new Error(r.error)),error_callback:e=>rej(new Error(e.type))}).requestAccessToken());
+ const v=new google.picker.DocsView().setIncludeFolders(true).setMimeTypes('application/vnd.google-apps.spreadsheet,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv');
+ const doc=await new Promise(res=>{const p=new google.picker.PickerBuilder().addView(v).setOAuthToken(GT).setDeveloperKey(cfg.apiKey).setCallback(d=>{if(d.action=='picked')res(d.docs[0]);else if(d.action=='cancel')res(null)});if(cfg.appId)p.setAppId(cfg.appId);p.build().setVisible(true)});
+ if(!doc)return;const gs=doc.mimeType=='application/vnd.google-apps.spreadsheet';
+ const r=await fetch('https://www.googleapis.com/drive/v3/files/'+doc.id+(gs?'/export?mimeType='+encodeURIComponent('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'):'?alt=media'),{headers:{Authorization:'Bearer '+GT}});
+ if(!r.ok)throw new Error('Drive returned '+r.status);const b=await r.blob();b.name=doc.name;k=='up'?addFiles([new File([b],doc.name+(gs?'.xlsx':''))]):k=='wb'?loadFile(b):impFile(k,b)}
+ catch(e){alert('Google Drive import failed: '+(e.message||'cancelled'))}}
+async function glink(k){const u=prompt('Paste the Google Drive or Google Sheets link.\nThe file must be shared as "Anyone with the link" (Viewer).');if(!u)return;
+ try{const r=await fetch('/api/gfetch?url='+encodeURIComponent(u),{headers:H()});if(r.status==401){showLogin('Sign in to import from Google Drive.');return}
+ if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error(j.error||'Error '+r.status)}
+ const b=await r.blob();b.name='Google Drive link';k=='up'?addFiles([new File([b],'Google Drive import.xlsx')]):k=='wb'?loadFile(b):impFile(k,b)}catch(e){alert('Drive link import failed: '+e.message)}}
+function exp(){const wb=XLSX.utils.book_new(),c=calc(M);
+ for(const k of['sales','opex','payroll','ads','cash','brands','tiers','bal']){const t=T[k];
+  const A=[[t.sheet.slice(t.sheet.indexOf('_')+1)],['Exported from Ledger '+new Date().toISOString().slice(0,10)],[],[...t.cols.map(x=>x[1]),...t.calc.map(x=>x[0])],...S[k].map(r=>[...t.cols.map(x=>r[x[0]]),...t.calc.map(x=>x[1](r))])];
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(A),t.sheet)}
+ const sm=[['COMMISSION P&L — '+(M||'All time')],[],['Brand','GMV','Rate','Commission'],...c.br.map(b=>[b.name,b.g,b.rate,b.c]),['Total commission / service revenue','','',c.rev],[],['Daily expenses',c.opex],['Payroll employer cost',c.pay],['Advertising',c.ads],['Total OPEX',c.tot],['Operating profit',c.profit],['Operating margin',c.mg],[],['Cash in',c.ci],['Cash out',c.co],['Cash balance (all time)',c.bal]];
+ XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(sm),'17_COMMISSION P&L');
+ XLSX.writeFile(wb,'Financial_Reporting_System_'+new Date().toISOString().slice(0,10)+'.xlsx')}
+// ===== FS module: file vault, Upload Center, Documents, Platform Performance, weekly review, Team & Audit =====
+const js=s=>esc(JSON.stringify(String(s??'')));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const loc=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()),today=()=>loc(new Date());
+const addD=(s,n)=>{const d=new Date(s+'T12:00:00');d.setDate(d.getDate()+n);return loc(d)};
+const wk=s=>{const d=new Date(s+'T12:00:00');return addD(s,-((d.getDay()+6)%7))};
+const dOf=t=>loc(new Date(t)),pc=v=>(v*100).toFixed(1)+'%',sz=b=>b>1e6?(b/1e6).toFixed(1)+' MB':Math.max(1,Math.round(b/1e3))+' KB';
+const per=d=>d.start?(d.start==d.end?d.start:d.start+' → '+d.end):'';
+const PLATK={tt_products:'TikTok product list',tt_traffic:'TikTok traffic',tt_promotions:'TikTok promotions'};
+const isInv=c=>/^Invoice/.test(c||''),isPay=c=>c=='Invoice (payable)',isCon=c=>c=='Contract';
+const isOpen=d=>!/^(Paid|Terminated|Expired)$/i.test(d.status||'');
+let W='',Q=[],BUSY=0,FT=null,PB='';
+
+// ---- file vault ----
+async function putFile(f){if(!CLOUD)return'';const r=await fetch('/api/files',{method:'POST',headers:{...H(),'x-file-name':encodeURIComponent(f.name||'file'),'content-type':f.type||'application/octet-stream'},body:f});
+ const j=await r.json().catch(()=>({}));if(r.status==401){showLogin('Session expired — sign in again.');throw new Error('Not signed in')}if(!r.ok)throw new Error(j.error||'Upload failed ('+r.status+')');return j.id}
+async function vault(f,h,m){try{if(S.docs.some(d=>d.hash==h))return;const fileId=await putFile(f);S.docs.unshift({id:uid(),fileId,hash:h,name:f.name||'file',size:f.size||0,mime:f.type||'',at:Date.now(),by:ME.name,...m});save();if(V=='docs')go()}catch(e){stat('⚠ File not stored in vault: '+e.message)}}
+async function dl(id){const d=S.docs.find(x=>x.id==id);if(!d)return;if(!d.fileId)return alert('This file was registered offline and was never stored on the server.');
+ try{const r=await fetch('/api/files?id='+d.fileId,{headers:H()});if(r.status==401)return showLogin('Sign in to download files.');if(!r.ok)throw new Error('Download failed ('+r.status+')');
+ const u=URL.createObjectURL(await r.blob()),a=document.createElement('a');a.href=u;a.download=d.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),5e3)}catch(e){alert(e.message)}}
+async function fileWB(d){const r=await fetch('/api/files?id='+d.fileId,{headers:H()});if(!r.ok)throw new Error('Could not load the stored file ('+r.status+')');return XLSX.read(await r.arrayBuffer(),{cellDates:true})}
+
+// ---- Upload Center ----
+function guessCat(n,det,lw){n=n.toLowerCase();if(det)return'Platform report';if(lw)return'Ledger workbook';
+ if(/invoice|\binv\b|billing|\bsoa\b|statement of account/.test(n))return'Invoice (payable)';if(/contract|agreement|\bmoa\b|\bmou\b|\bnda\b/.test(n))return'Contract';
+ if(/payroll|payslip/.test(n))return'Payroll';if(/bank|gcash|gotyme|bdo|statement/.test(n))return'Bank / e-wallet statement';if(/bir|tax|sss|philhealth|pag-?ibig/.test(n))return'Tax / government';
+ if(/receipt|expense|\bor\b|voucher/.test(n))return'Expense';if(/sales|order|settlement|income|payout/.test(n))return'Sales';return'Other'}
+async function addFiles(list){for(const f of list){const q={id:uid(),file:f,m:{category:'',team:'Finance',brand:'',platform:'',start:'',end:'',docNo:'',party:'',docDate:'',amount:'',due:'',status:'',cStart:'',cEnd:'',notes:''}};
+ q.hash=await fhash(f);q.dup=S.docs.find(d=>d.hash==q.hash)||(S.uploads||[]).find(u=>u.hash==q.hash&&!u.undone);q.skip=!!q.dup;
+ if(f.size>5.5e6)q.err='Larger than 5.5 MB — compress or split it before uploading.';
+ if(/\.(xlsx|xls|csv)$/i.test(f.name)){try{q.wb=await readWB(f);q.det=FSP.detect(q.wb);q.lw=q.wb.SheetNames.some(n=>Object.values(T).some(t=>t.sheet==n))}catch(e){q.warn='Could not read this spreadsheet: '+e.message}}
+ const m=q.m;m.category=guessCat(f.name,q.det,q.lw);
+ if(q.det){m.platform=q.det.platform;m.start=q.det.start||'';m.end=q.det.end||'';m.brand=FSP.brandFromName(f.name,S.brands.map(b=>b.name));m.team='Live Commerce';
+  if(q.det.kind=='tt_products'){const ov=S.sales.filter(r=>r.brand==m.brand&&r.platform=='TikTok'&&r.date>=m.start&&r.date<=m.end&&!String(r.orderId).startsWith('TT|'));q.ov=ov.reduce((s,r)=>s+r.gross,0);q.ovn=ov.length;q.post=!ov.length}}
+ if(!m.brand){const b=FSP.brandFromName(f.name,S.brands.map(b=>b.name));if(S.brands.some(x=>x.name==b))m.brand=b}
+ if(isInv(m.category))m.status='Unpaid';if(isCon(m.category))m.status='Active';
+ Q.push(q)}V='up';go()}
+function dropFiles(e){e.preventDefault();e.currentTarget.classList.remove('on');addFiles([...e.dataTransfer.files])}
+const DOCF=[['category','Category','t','cat'],['team','Team','t','team'],['brand','Brand','t','bd'],['platform','Platform','t','pf'],['start','Period from','d'],['end','Period to','d'],['docNo','Invoice / doc no.','t'],['party','Counterparty','t'],['docDate','Document date','d'],['amount','Amount (₱)','n'],['due','Due date','d'],['cStart','Contract start','d'],['cEnd','Contract end','d'],['status','Status','t','ds'],['notes','Notes','t']];
+function fieldsFor(c){const k=['category','team','brand','platform','start','end'];if(isInv(c))k.push('docNo','party','docDate','amount','due','status');else if(isCon(c))k.push('docNo','party','docDate','amount','cStart','cEnd','status');else if(c=='Expense')k.push('docNo','party','docDate','amount','status');k.push('notes');return DOCF.filter(f=>k.includes(f[0]))}
+function fieldsHTML(m,on){return`<div class=fg>${fieldsFor(m.category).map(([k,l,t,dl])=>`<label>${l}<input type="${t=='d'?'date':t=='n'?'number':'text'}" step=any ${dl?`list=${dl}`:''} value="${esc(m[k])}" ${on(k)}></label>`).join('')}</div>`}
+function qCard(q,i){const d=q.det,m=q.m,S1=d&&d.summary;
+ const info=d?`<span class="tag t">${esc(d.label)}</span>${d.rows.length} rows · ${per(m)}${S1&&S1.gmv!=null?` · GMV ${P(S1.gmv)}`:''}${S1&&S1.discount?` · discount ${P(S1.discount)}`:''}${S1&&S1.views?` · ${S1.views.toLocaleString()} views`:''}`:q.lw?'<span class="tag t">Ledger workbook</span>sheets will be imported into the ledger tables':(q.wb?'<span class=tag>Spreadsheet</span>stored as a document':'<span class=tag>Document</span>stored in the vault');
+ const on=k=>`onchange="Q[${i}].m.${k}=this.value;${k=='category'?'go()':''}"`;
+ return`<div class="q ${q.skip?'dup':''}"><h4>${esc(q.file.name)} <span class=c style="font-weight:400;color:var(--mut)">${sz(q.file.size)}</span></h4><div class=c style="color:var(--mut);font-size:13px">${info}</div>
+ ${q.dup?`<p class="n rv">Already stored${q.dup.at?' on '+new Date(q.dup.at).toLocaleDateString():''}${q.dup.by?' by '+esc(q.dup.by):''}. <label><input type=checkbox ${q.skip?'':'checked'} onchange="Q[${i}].skip=!this.checked;go()"> upload again anyway</label></p>`:''}
+ ${q.err?`<p class="n rv">${esc(q.err)}</p>`:''}${q.warn?`<p class=n>${esc(q.warn)}</p>`:''}
+ ${fieldsHTML(m,on)}
+ ${d&&d.kind=='tt_products'?`<label class=chk><input type=checkbox ${q.post?'checked':''} onchange="Q[${i}].post=this.checked"> Post GMV by channel to Sales (drives brand commission) — 4 rows dated ${esc(m.end)}</label>${q.ovn?`<p class="n rv">Sales already has ${q.ovn} TikTok row(s) for ${esc(m.brand)} in this period (${P(q.ov)}). Posting would double-count — left unticked.</p>`:''}`:''}
+ ${q.wb&&!d&&!q.lw?`<label class=chk>Also import rows into <select onchange="Q[${i}].into=this.value"><option value="">— don't import —</option>${['sales','opex','payroll','ads','cash'].map(k=>`<option value=${k} ${q.into==k?'selected':''}>${T[k].n}</option>`).join('')}</select></label>`:''}
+ ${isPay(m.category)?`<label class=chk><input type=checkbox ${q.toOpex?'checked':''} onchange="Q[${i}].toOpex=this.checked"> Also record in Daily Expenses (as ${esc(m.status||'Unpaid')}) with account <input list=coa style="width:90px" value="${esc(q.acct||'')}" onchange="Q[${i}].acct=this.value" placeholder="code"></label>`:''}
+ <div style="margin-top:8px"><button class="x g" onclick="Q.splice(${i},1);go()">Remove from list</button></div></div>`}
+function upView(){const pend=Q.filter(q=>!q.skip&&!q.err).length;
+ return`<div class=drop ondragover="event.preventDefault();this.classList.add('on')" ondragleave="this.classList.remove('on')" ondrop="dropFiles(event)" onclick="this.querySelector('input').click()"><b style="color:var(--ink)">Drop this week's files here</b> or click to choose<br><small>Platform reports (TikTok product list, traffic, promotions), sales &amp; expense sheets, invoices, contracts, statements — xlsx, csv, pdf, docx, images · max 5.5 MB each</small><input type=file multiple hidden accept=".xlsx,.xls,.csv,.pdf,.doc,.docx,.ppt,.pptx,.png,.jpg,.jpeg,.webp,.heic,.txt,.zip" onchange="addFiles([...this.files]);this.value=''" onclick="event.stopPropagation()"></div>
+ <div class=bar><button class=g onclick="gdrive('up')">Add from Google Drive</button>${Q.length?`<button onclick="saveQueue()" ${BUSY||!pend?'disabled':''}>${BUSY?'Saving…':'Save '+pend+' file'+(pend==1?'':'s')}</button><button class=g onclick="Q=[];go()">Clear list</button>`:''}<span>${CLOUD?'Files are stored on the server and logged under '+esc(ME.name)+'.':'⚠ Offline: details are saved in this browser but files are not stored. Sign in to keep files.'}</span></div>
+ ${Q.map(qCard).join('')||'<p class=n>Nothing queued. Every file you add is checked for duplicates, recognised if it is a known platform report, then stored with its brand, team, category and period so it shows up in Documents and on the Dashboard.</p>'}`}
+function channelRows(q){const s=q.det.summary.channels,code={'Seller LIVE':'LIVE','Creator / Affiliate':'AFF','Product card':'PC','Seller video':'VID'};
+ return Object.entries(s).map(([ch,g])=>({date:q.m.end,orderId:`TT|${q.m.brand}|${q.m.start}|${q.m.end}|${code[ch]}`,platform:'TikTok',brand:q.m.brand,sku:'CHANNEL',product:ch+' GMV ('+q.m.start+' to '+q.m.end+')',qty:1,gross:g,discount:0,refund:0,pfee:0,afee:0,ship:0,ofee:0}))}
+async function saveQueue(){if(BUSY)return;const todo=Q.filter(q=>!q.skip&&!q.err&&!q.done);
+ for(const q of todo){if(!q.m.category)return alert('Choose a category for '+q.file.name);if(q.det&&!q.m.brand)return alert('Choose the brand for '+q.file.name);if(q.post&&!S.brands.some(b=>b.name==q.m.brand)&&!confirm(`"${q.m.brand}" is not in Brands & Rates, so its GMV earns no commission until you add it. Continue?`))return}
+ BUSY=1;go();const ok=[],bad=[];
+ for(const q of todo){try{
+  const fileId=await putFile(q.file),id=uid(),m={...q.m,amount:q.m.amount===''?'':num(q.m.amount)},L=[];
+  if(q.det&&q.det.kind=='tt_products'&&q.post){const r=merge('sales',channelRows(q),id);L.push(['Sales',r.n,r.d])}
+  if(q.lw)for(const k of['sales','opex','payroll','ads','cash','brands','tiers','bal']){const n=q.wb.SheetNames.find(x=>x==T[k].sheet);if(!n)continue;const r=parse(q.wb.Sheets[n],T[k]);if(r){const g=merge(k,r,id);L.push([T[k].n,g.n,g.d])}}
+  if(q.into){const t=T[q.into],r=parse(q.wb.Sheets[q.wb.SheetNames[0]],t);if(r&&r.length){const g=merge(q.into,r,id);L.push([t.n,g.n,g.d])}else q.warn='No rows matched the '+t.n+' columns — file stored only.'}
+  if(isPay(m.category)&&q.toOpex){const g=merge('opex',[{date:m.docDate||m.due||today(),voucher:m.docNo||'INV-'+id,payee:m.party,desc:'Invoice '+(m.docNo||'')+' '+q.file.name,account:q.acct||'',category:COA[q.acct]?COA[q.acct][3]:'',dept:m.team,amount:num(m.amount),method:'',status:m.status=='Paid'?'Paid':'Unpaid',ref:'DOC:'+id}],id);L.push(['Daily Expenses',g.n,g.d])}
+  const posted=lmsg(L).replace(/\n/g,'; ');
+  S.docs.unshift({id,fileId,hash:q.hash,name:q.file.name,size:q.file.size,mime:q.file.type,at:Date.now(),by:ME.name,...m,kind:q.det?q.det.kind:'',summary:q.det?q.det.summary:null,posted,uploadId:L.length?id:''});
+  if(L.length)S.uploads=[{id,at:Date.now(),by:ME.name,name:q.file.name,hash:q.hash,log:posted},...(S.uploads||[])].slice(0,500);
+  q.done=1;ok.push(q.file.name+(posted?' ('+posted+')':''))}catch(e){q.err=e.message;bad.push(q.file.name+': '+e.message)}}
+ BUSY=0;Q=Q.filter(q=>!q.done);if(ok.length)save('Uploaded '+ok.length+' file(s): '+ok.join(' | '));go();
+ alert((ok.length?'Saved:\n• '+ok.join('\n• '):'')+(bad.length?'\n\nNot saved (still in the list):\n• '+bad.join('\n• '):''))}
+
+// ---- Documents ----
+let DF={q:'',cat:'',brand:'',open:''},DE='';
+function docsView(){const t=today(),f=S.docs.filter(d=>(!DF.cat||d.category==DF.cat)&&(!DF.brand||d.brand==DF.brand)&&(!DF.open||(DF.open=='due'?(isInv(d.category)&&isOpen(d)):isCon(d.category)))&&(!DF.q||nz([d.name,d.party,d.docNo,d.notes,d.brand,d.by].join(' ')).includes(nz(DF.q))));
+ const cats=[...new Set(S.docs.map(d=>d.category).filter(Boolean))].sort(),brs=[...new Set(S.docs.map(d=>d.brand).filter(Boolean))].sort(),sel=(k,a,l)=>`<select onchange="DF.${k}=this.value;go()"><option value="">${l}</option>${a.map(x=>`<option ${DF[k]==x?'selected':''}>${esc(x)}`).join('')}</select>`;
+ const flag=d=>isInv(d.category)&&isOpen(d)&&d.due?(d.due<t?'<span class="tag w">overdue</span>':d.due<=addD(t,7)?'<span class="tag w">due ≤7d</span>':''):isCon(d.category)&&d.cEnd?(d.cEnd<t?'<span class="tag w">ended</span>':d.cEnd<=addD(t,60)?'<span class="tag w">ends ≤60d</span>':''):'';
+ return`<div class=bar><input placeholder="Search name, counterparty, no., notes" value="${esc(DF.q)}" onchange="DF.q=this.value;go()" style="min-width:240px">${sel('cat',cats,'All categories')}${sel('brand',brs,'All brands')}<select onchange="DF.open=this.value;go()"><option value="">All documents</option><option value=due ${DF.open=='due'?'selected':''}>Open invoices</option><option value=con ${DF.open=='con'?'selected':''}>Contracts</option></select><span>${f.length} of ${S.docs.length}</span><button onclick="V='up';go()">Upload files</button></div>
+ <div class=sc><table><tr><th>Uploaded<th>File<th>Category<th>Brand / team<th>Period / dates<th class=r>Amount<th>Status<th>By<th></tr>
+ ${f.slice(0,500).map(d=>`<tr><td>${dOf(d.at)}<td style="white-space:normal;min-width:180px;max-width:340px;overflow-wrap:anywhere">${d.fileId?`<a class=l onclick="dl('${d.id}')">${esc(d.name)}</a>`:esc(d.name)} ${d.kind?`<span class="tag t">${PLATK[d.kind]||d.kind}</span>`:''}${d.posted?`<br><small class=c style="color:var(--mut)">→ ${esc(d.posted)}</small>`:''}${d.notes?`<br><small style="color:var(--mut)">${esc(d.notes)}</small>`:''}
+ <td style="white-space:normal">${esc(d.category)}<td style="white-space:normal">${[d.brand,d.party].filter(Boolean).map(esc).join(' · ')}<br><small style="color:var(--mut)">${esc(d.team||'')}</small><td>${per(d)}${d.due?'<br><small>due '+d.due+'</small>':''}${d.cEnd?'<br><small>'+esc(d.cStart||'')+' → '+d.cEnd+'</small>':''}
+ <td class=r>${d.amount!==''&&d.amount!=null?P(d.amount):''}<td>${esc(d.status||'')} ${flag(d)}${isInv(d.category)&&isOpen(d)?` <a class=l onclick="markPaid('${d.id}')">mark paid</a>`:''}<td>${esc(d.by||'')}<td><button class=g onclick="DE=DE=='${d.id}'?'':'${d.id}';go()">${DE==d.id?'Close':'Edit'}</button></tr>
+ ${DE==d.id?`<tr><td colspan=9 style="white-space:normal;background:#F7F8F5">${fieldsHTML(d,k=>`onchange="setDoc('${d.id}','${k}',this.value)"`)}<div class=bar style="margin:8px 0 0">${d.kind&&d.fileId?`<button class=g onclick="V='plat';PB=${js(d.brand)};go()">Open in Platform Performance</button>`:''}<button class="x g" onclick="delDoc('${d.id}')">Remove document</button></div></td></tr>`:''}`).join('')||'<tr><td colspan=9 class=c>No documents yet — use the Upload Center.</tr>'}</table></div>
+ <p class=n>Downloads come straight from the server vault. Removing a document only takes it out of this list; the owner can also permanently delete the stored file.</p>`}
+function setDoc(id,k,v){const d=S.docs.find(x=>x.id==id);if(!d)return;d[k]=k=='amount'?(v===''?'':num(v)):v;save('Edited '+d.name+': '+k+' = '+v);if(k=='category')go()}
+function markPaid(id){const d=S.docs.find(x=>x.id==id);if(!d)return;d.status='Paid';d.paidOn=today();
+ S.opex.filter(r=>r.ref=='DOC:'+id).forEach(r=>r.status='Paid');save('Marked paid: '+d.name+(d.docNo?' #'+d.docNo:''));go()}
+async function delDoc(id){const d=S.docs.find(x=>x.id==id);if(!d||!confirm(`Remove "${d.name}" from Documents?`))return;
+ const ks=['sales','opex','payroll','ads','cash'],n=d.uploadId?ks.reduce((s,k)=>s+S[k].filter(r=>r._u==d.uploadId).length,0):0;
+ if(n&&confirm(`This upload also added ${n} ledger row(s). Remove those too?`)){ks.forEach(k=>S[k]=S[k].filter(r=>r._u!=d.uploadId));const u=S.uploads.find(x=>x.id==d.uploadId);if(u)u.undone=new Date().toLocaleString()+' by '+ME.name}
+ S.docs=S.docs.filter(x=>x.id!=id);
+ if(ME.role=='owner'&&d.fileId&&!S.docs.some(x=>x.fileId==d.fileId)&&confirm('Also permanently delete the stored file from the server?\n(Cancel keeps a copy in the vault.)'))await fetch('/api/files?id='+d.fileId,{method:'DELETE',headers:H()}).catch(()=>{});
+ DE='';save('Removed document '+d.name+(n?' and its '+n+' ledger rows':''));go()}
+
+// ---- Platform Performance ----
+function platRuns(brand){const g={};S.docs.filter(d=>d.kind&&d.summary&&(!brand||d.brand==brand)).forEach(d=>{const k=d.brand+'|'+d.start+'|'+d.end;(g[k]=g[k]||{brand:d.brand,start:d.start,end:d.end})[d.kind]=d});
+ return Object.values(g).sort((a,b)=>b.end.localeCompare(a.end)||b.start.localeCompare(a.start))}
+const dlt=(a,b)=>b?`<small class="${a<b?'neg':'ok'}"> ${a>=b?'▲':'▼'}${Math.abs((a-b)/b*100).toFixed(0)}%</small>`:'';
+function spark(daily){if(!daily||daily.length<2)return'';const mx=Math.max(1,...daily.map(x=>x[2])),w=600,h=90,pts=daily.map((x,i)=>`${(i/(daily.length-1)*w).toFixed(1)},${(h-4-x[2]/mx*(h-12)).toFixed(1)}`).join(' ');
+ return`<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:90px" preserveAspectRatio=none><polyline points="${pts}" fill=none stroke="var(--ac)" stroke-width=2 vector-effect=non-scaling-stroke /></svg><div class=bar style="justify-content:space-between;margin:0;font-size:12px"><span>${daily[0][0]}</span><span>peak ${P(mx)}/day</span><span>${daily.at(-1)[0]}</span></div>`}
+function platView(){const brands=[...new Set(S.docs.filter(d=>d.kind).map(d=>d.brand))].sort();if(!PB||!brands.includes(PB))PB=brands[0]||'';
+ if(!PB)return`<div class=box><h3>No platform reports yet</h3><p class=n>Upload TikTok Seller Center exports (Analytics › Product list, Product card traffic, Marketing › Promotions) in the Upload Center. They are recognised automatically.</p><button onclick="V='up';go()">Go to Upload Center</button></div>`;
+ const runs=platRuns(PB),r=runs.find(x=>x.tt_products)||runs[0],prev=r&&runs.find(x=>x!==r&&x.tt_products&&x.end<r.start),p=r.tt_products&&r.tt_products.summary,pp=prev&&prev.tt_products.summary,t=r.tt_traffic&&r.tt_traffic.summary,pr=r.tt_promotions&&r.tt_promotions.summary;
+ const k=(l,v,x='')=>`<div class=k><small>${l}</small><b>${v}${x}</b></div>`,mx=p?Math.max(1,...Object.values(p.channels)):1;
+ return`<div class=bar>Brand <select onchange="PB=this.value;FT=null;go()">${brands.map(b=>`<option ${b==PB?'selected':''}>${esc(b)}`).join('')}</select><span>Showing ${per(r)}${pp?' · compared with '+per(prev):''}</span></div>
+ ${p?`<div class=k3>${k('GMV',P(p.gmv),dlt(p.gmv,pp&&pp.gmv))}${k('Orders',p.orders.toLocaleString(),dlt(p.orders,pp&&pp.orders))}${k('AOV',P(p.aov),dlt(p.aov,pp&&pp.aov))}${k('Refunds',P(p.refunds),`<small class="${p.refundRate>.15?'neg':''}"> ${pc(p.refundRate)}</small>`)}${k('Items sold',p.items.toLocaleString())}${k('Click → order',pc(p.conv))}</div>`:''}
+ <div class=two><div>${p?`<div class=box><h3>GMV by channel</h3>${Object.entries(p.channels).map(([c,v])=>`<div class=m><span style="width:130px">${c}</span><i style="width:${v/mx*55}%"></i>${P(v)} <small style="color:var(--mut)">${pc(p.gmv?v/p.gmv:0)}</small></div>`).join('')}</div>
+ <div class=box><h3>Top products</h3><table><tr><th>Product<th class=r>GMV<th class=r>Items<th class=r>Refunds</tr>${p.top.map(x=>`<tr><td style="white-space:normal">${esc(x.name)}<td class=r>${P(x.gmv)}<td class=r>${x.items}<td class=r>${P(x.refunds)}</tr>`).join('')}</table>
+ <div class=bar style="margin:8px 0 0"><button class=g onclick="fullTable('${r.tt_products.id}')">${FT&&FT.id==r.tt_products.id?'Refresh':'Show'} all ${p.products} products</button></div></div>`:''}
+ ${FT?`<div class=box><h3>${esc(FT.title)}</h3>${FT.html}</div>`:''}</div>
+ <div>${t?`<div class=box><h3>Product card traffic</h3>${spark(t.daily)}<table><tr><td>Views / viewers<td class=r>${t.views.toLocaleString()} / ${t.viewers.toLocaleString()}<tr><td>Click-through (clicks ÷ views)<td class=r>${pc(t.ctr)}<tr><td>Cart → paid<td class=r>${pc(t.cartToPaid)}<tr><td>Card-attributed GMV<td class=r>${P(t.cardGmv)}<tr><td>Content-attributed GMV<td class=r>${P(t.contentGmv)}</table></div>`:''}
+ ${pr?`<div class=box><h3>Promotions</h3><table><tr><td>Promotions with sales<td class=r>${pr.withSales} of ${pr.promos} (${pr.ongoing} ongoing)<tr><td>Discount given<td class=r>${P(pr.discount)}<tr><td>Promo-attributed GMV<td class=r>${P(pr.gmv)}<tr><td>Blended ROI (GMV ÷ discount)<td class="r ${pr.roi<2?'rv':''}">${pr.roi}×</table>
+ <p class=n>Promo GMV double-counts orders that used several promotions, so it is higher than shop GMV. Use it to compare promotions, not as sales.</p>
+ ${pr.lowRoi.length?`<h3 style="margin-top:10px">Lowest-ROI promotions (≥ ₱1,000 discount)</h3><table>${pr.lowRoi.map(x=>`<tr><td style="white-space:normal">${esc(x.name)}<td class=r>${P(x.discount)}<td class="r rv">${x.roi}×</tr>`).join('')}</table>`:''}</div>`:''}
+ ${!t||!pr||!p?`<p class=n>Missing for this period: ${[!p&&'product list',!t&&'traffic',!pr&&'promotions'].filter(Boolean).join(', ')}.</p>`:''}</div></div>
+ <div class=box><h3>History — ${esc(PB)}</h3><div class=sc style="border:0;margin:0"><table><tr><th>Period<th class=r>GMV<th class=r>Orders<th class=r>AOV<th class=r>Refund rate<th class=r>LIVE<th class=r>Creator<th class=r>Product card<th class=r>Video<th class=r>Promo discount<th class=r>Promo ROI<th class=r>Views<th class=r>CTR</tr>
+ ${runs.map(x=>{const a=x.tt_products&&x.tt_products.summary,b=x.tt_promotions&&x.tt_promotions.summary,c=x.tt_traffic&&x.tt_traffic.summary,e='<td class="r c">—';return`<tr><td>${per(x)}${a?`<td class=r>${P(a.gmv)}<td class=r>${a.orders}<td class=r>${P(a.aov)}<td class=r>${pc(a.refundRate)}<td class=r>${P(a.live)}<td class=r>${P(a.creator)}<td class=r>${P(a.card)}<td class=r>${P(a.video)}`:e.repeat(8)}${b?`<td class=r>${P(b.discount)}<td class=r>${b.roi}×`:e.repeat(2)}${c?`<td class=r>${c.views.toLocaleString()}<td class=r>${pc(c.ctr)}`:e.repeat(2)}</tr>`}).join('')}</table></div></div>`}
+async function fullTable(id){const d=S.docs.find(x=>x.id==id);try{stat('Loading stored file…');const r=FSP.detect(await fileWB(d));
+ FT={id,title:'All products — '+per(d),html:`<div class=sc style="max-height:420px;overflow:auto;margin:0"><table><tr><th>Product<th class=r>GMV<th class=r>LIVE<th class=r>Creator<th class=r>Card<th class=r>Video<th class=r>Orders<th class=r>Items<th class=r>CTR<th class=r>Refunds</tr>${[...r.rows].sort((a,b)=>b.gmv-a.gmv).map(x=>`<tr><td title="${esc(x.name)}">${esc(x.name.replace(/^Discounted Best Selling Official Brand\s*/i,'').slice(0,60))}<td class=r>${P(x.gmv)}<td class=r>${P(x.live)}<td class=r>${P(x.creator)}<td class=r>${P(x.card)}<td class=r>${P(x.video)}<td class=r>${x.orders}<td class=r>${x.items}<td class=r>${pc(x.impressions?x.clicks/x.impressions:0)}<td class=r>${P(x.refunds)}</tr>`).join('')}</table></div>`};stat('Loaded');go()}catch(e){alert(e.message)}}
+
+// ---- Weekly review (top of Dashboard) ----
+function weekly(){const t=today(),w0=W||wk(t),w1=addD(w0,6),inW=d=>d&&d>=w0&&d<=w1,ws=[];for(let i=0;i<12;i++)ws.push(addD(wk(t),-7*i));
+ const ups=S.docs.filter(d=>inW(dOf(d.at))),byCat={};ups.forEach(d=>byCat[d.category]=(byCat[d.category]||0)+1);
+ const inv=(c)=>S.docs.filter(d=>d.category==c&&isOpen(d)),sum=a=>a.reduce((s,d)=>s+(+d.amount||0),0),pay=inv('Invoice (payable)'),rec=inv('Invoice (receivable)'),od=pay.filter(d=>d.due&&d.due<t),d7=pay.filter(d=>d.due&&d.due>=t&&d.due<=addD(t,7)),rod=rec.filter(d=>d.due&&d.due<t);
+ const con=S.docs.filter(d=>isCon(d.category)&&d.cEnd&&isOpen(d)),c60=con.filter(d=>d.cEnd>=t&&d.cEnd<=addD(t,60)),cx=con.filter(d=>d.cEnd<t);
+ const sw=S.sales.filter(r=>inW(r.date)),ow=S.opex.filter(r=>inW(r.date)),gw=sw.reduce((s,r)=>s+r.gross-r.discount-r.refund,0),ew=ow.reduce((s,r)=>s+r.amount,0);
+ const brands=[...new Set(S.docs.filter(d=>d.kind).map(d=>d.brand))],snap=brands.map(b=>{const r=platRuns(b).filter(x=>x.tt_products&&x.start<=w1),a=r[0],p=r.find(x=>x!==a&&x.end<a.start);return a&&{b,a,s:a.tt_products.summary,ps:p&&p.tt_products.summary}}).filter(Boolean);
+ const A=[];od.length&&A.push(`${od.length} payable invoice(s) overdue — ${P(sum(od))}`);rod.length&&A.push(`${rod.length} receivable invoice(s) overdue — ${P(sum(rod))} to collect`);d7.length&&A.push(`${d7.length} payable invoice(s) due in the next 7 days — ${P(sum(d7))}`);
+ c60.forEach(d=>A.push(`Contract with ${esc(d.party||d.brand||d.name)} ends ${d.cEnd}`));cx.forEach(d=>A.push(`Contract with ${esc(d.party||d.brand||d.name)} ended ${d.cEnd} but is still marked ${esc(d.status||'open')}`));
+ snap.forEach(({b,s})=>{if(s.refundRate>.15)A.push(`${esc(b)}: refunds are ${pc(s.refundRate)} of GMV (${P(s.refunds)})`)});
+ brands.forEach(b=>{const last=Math.max(...S.docs.filter(d=>d.brand==b&&d.kind).map(d=>d.at));if(Date.now()-last>8*864e5)A.push(`No platform report uploaded for ${esc(b)} since ${dOf(last)}`)});
+ S.docs.filter(d=>d.kind=='tt_promotions'&&d.summary&&d.summary.roi&&d.summary.roi<2).slice(0,3).forEach(d=>A.push(`${esc(d.brand)} promotions returned ${d.summary.roi}× on ${P(d.summary.discount)} discount (${per(d)})`));
+ return`<div class=box><div class=bar style="margin:0 0 8px"><h3 style="margin:0 auto 0 0">Weekly review</h3>Week of <select onchange="W=this.value;go()">${ws.map(w=>`<option value=${w} ${w==w0?'selected':''}>${w} – ${addD(w,6)}</option>`).join('')}</select></div>
+ <div class=k3><div class=k><small>Files uploaded this week</small><b>${ups.length}</b></div><div class=k><small>Payables open</small><b>${P(sum(pay))}</b></div><div class=k><small>Receivables open</small><b>${P(sum(rec))}</b></div><div class=k><small>Ledger sales dated this week</small><b>${P(gw)}</b></div><div class=k><small>Ledger expenses dated this week</small><b>${P(ew)}</b></div></div>
+ <div class=two><div><h3>Needs attention</h3>${A.length?`<ul class=al>${A.map(a=>`<li>${a}</li>`).join('')}</ul>`:'<p class="n ok">Nothing overdue or expiring.</p>'}
+ <h3 style="margin-top:12px">Received this week</h3><p class=n style="margin:0">${Object.entries(byCat).map(([c,n])=>`<span class=tag>${esc(c)} · ${n}</span>`).join('')||'No files uploaded in this week yet.'} <a class=l onclick="V='up';go()">Upload</a></p></div>
+ <div><h3>Platform snapshot <small style="color:var(--mut);font-weight:400">latest report per brand</small></h3>${snap.length?`<table><tr><th>Brand<th>Period<th class=r>GMV<th class=r>Orders<th class=r>Refunds</tr>${snap.map(({b,a,s,ps})=>`<tr><td><a class=l onclick="V='plat';PB=${js(b)};go()">${esc(b)}</a><td class=c>${per(a)}<td class=r>${P(s.gmv)}${dlt(s.gmv,ps&&ps.gmv)}<td class=r>${s.orders}<td class="r ${s.refundRate>.15?'rv':''}">${pc(s.refundRate)}</tr>`).join('')}</table>`:'<p class=n>Upload platform reports to see brand performance here.</p>'}</div></div></div>`}
+
+// ---- Team & Audit ----
+let TEAM={users:null,audit:null,err:''};
+async function tcall(b){const r=await fetch('/api/auth',{method:'POST',headers:{...H(),'content-type':'application/json'},body:JSON.stringify(b)}),j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||'Error '+r.status);return j}
+async function loadTeam(){if(!CLOUD||TEAM.users!==null)return;TEAM.users=[];try{TEAM.audit=(await tcall({action:'audit'})).items;if(ME.role=='owner')TEAM.users=(await tcall({action:'users'})).users}catch(e){TEAM.err=e.message}if(V=='team')go()}
+async function tact(a,f,em){try{const b={action:a};if(f){b.email=f.email.value;b.name=f.name&&f.name.value;b.password=f.password&&f.password.value}else b.email=em;
+ if(a=='remove'&&!confirm('Remove access for '+b.email+'?'))return;if(a=='reset'){b.password=prompt('New password for '+b.email+' (min 10 characters)');if(!b.password)return}
+ await tcall(b);TEAM={users:null,audit:null,err:''};await loadTeam()}catch(e){alert(e.message)}}
+function teamView(){if(!CLOUD)return'<div class=box><p class=n>Sign in to manage the finance team and see the audit trail.</p><button onclick="showLogin()">Sign in</button></div>';
+ return`${ME.role=='owner'?`<div class=box><h3>Finance team access</h3><table><tr><th>Name<th>Email<th>Role<th>Added<th></tr>${(TEAM.users||[]).map(u=>`<tr><td>${esc(u.name)}<td>${esc(u.email)}<td>${esc(u.role)}<td class=c>${(u.added||'').slice(0,10)}<td><button class=g onclick="tact('reset',null,${js(u.email)})">Reset password</button> <button class="x g" onclick="tact('remove',null,${js(u.email)})">Remove</button></tr>`).join('')||'<tr><td colspan=5 class=c>No team members yet — only the owner password works.</tr>'}</table>
+ <form class=fg onsubmit="event.preventDefault();tact('add',this);this.reset()"><label>Name<input name=name required></label><label>Email<input name=email type=email required></label><label>Temporary password (10+ chars)<input name=password minlength=10 required></label><label>&nbsp;<button>Add finance user</button></label></form>
+ <p class=n>Each person signs in with their own email, so every upload and edit is attributed. Share the temporary password privately. The owner signs in with a blank email and the APP_PASSWORD.</p></div>`:''}
+ <div class=box><h3>Audit trail <small style="color:var(--mut);font-weight:400">latest 150 events</small></h3>${TEAM.err?`<p class="n rv">${esc(TEAM.err)}</p>`:''}<div class=sc style="border:0;margin:0;max-height:520px;overflow:auto"><table><tr><th>When<th>Who<th>Action<th>Detail</tr>${(TEAM.audit||[]).map(a=>`<tr><td>${new Date(a.at).toLocaleString()}<td>${esc(a.by)}<td>${esc(a.action)}<td style="white-space:normal">${esc(a.detail)}</tr>`).join('')||'<tr><td colspan=4 class=c>Loading…</tr>'}</table></div></div>`}
+
+go();boot();
+</script></body></html>

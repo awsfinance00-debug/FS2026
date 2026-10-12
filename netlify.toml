@@ -1,5 +1,22 @@
 [build]
-  publish = "public"
+  publish = "."
 
 [functions]
   directory = "netlify/functions"
+
+# Never serve server code or project files as static pages
+[[redirects]]
+  from = "/netlify/*"
+  to = "/404.html"
+  status = 404
+  force = true
+[[redirects]]
+  from = "/package*"
+  to = "/404.html"
+  status = 404
+  force = true
+[[redirects]]
+  from = "/README.md"
+  to = "/404.html"
+  status = 404
+  force = true

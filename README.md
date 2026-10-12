@@ -24,7 +24,7 @@ This is the single place where the Finance team stores the week's files and gets
 - **Team & Audit**: the owner adds or removes Finance users and resets their passwords. Everyone can see the audit trail (logins, uploads, edits, deletions).
 
 ## Deploy (GitHub → Netlify)
-1. Push this folder (static pages live in `public/`, server code in `netlify/`) to a GitHub repo. Deploy it from GitHub, not by drag-and-drop: drag-and-drop doesn't install the functions' dependency (`@netlify/blobs`).
+1. Push this folder to a GitHub repo. Deploy it from GitHub, not by drag-and-drop: drag-and-drop doesn't install the functions' dependency (`@netlify/blobs`).
 2. In Netlify, open **Add new site › Import from Git**, pick the repo and leave the build settings as they are (`netlify.toml` already sets them).
 3. Under **Site settings › Environment variables**, set:
    - `APP_PASSWORD`: the owner password. Keep the current value so existing data and sign-ins carry over.
