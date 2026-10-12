@@ -1,5 +1,9 @@
 [build]
   publish = "public"
 
+[build.environment]
+  # APP_PASSWORD's value matches the SESSION_SECRET env var name referenced in these files.
+  SECRETS_SCAN_OMIT_PATHS = "README.md,netlify/lib/auth.mjs"
+
 [functions]
   directory = "netlify/functions"
